@@ -4,5 +4,5 @@
 .Ruserdata
 .DS_Store
 README.Rmd
-data/
 README_files/
+R/
