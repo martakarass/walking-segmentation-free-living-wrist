@@ -1,0 +1,225 @@
+---
+title: "Automatic walking strides segmentation from  wrist-worn sensor accelerometry data collected in the free-living"
+output:
+  github_document:
+    toc: true
+    toc_depth: 4
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  cache = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  # cache.lazy = FALSE,
+  comment = "#>"
+)
+```
+
+Below, we demonstrate our method for automatic walking strides segmentation from wrist-worn sensor accelerometry data collected in the free-living environment. 
+
+This repository accompanies "*Estimation of free-living walking cadence from wrist-worn sensor accelerometry data and its association with SF-36 quality of life scores*" manuscript in which the method is proposed. The method is implemented as the `segmentWalking()` function in `adept` R package ([CRAN index](https://cran.r-project.org/web/packages/adept/index.html)). Below, we demonstrate the method with the use of independent data sample (not used in the manuscript study). 
+
+### Accelerometry data sample 
+
+#### Description 
+
+The directory `data/` contains data files: 
+
+* `acc_raw_left_wrist.rds`
+* `acc_raw_right_wrist.rds`
+
+which are a sample of raw accelerometry data collected consecutively for 2 days, starting and ending at midnight of a week day. Data were collected at the sampling frequency of 100 Hz with two ActiGraph GT9X Link sensors located at the left wrist and right wrist, respectively. One data observation includes `(x,y,z)` values collected from each of the three axes at the same time. At the sampling frequency of 100 Hz, there were 100 observations collected per second (17,280,000 observations per 2 days) for each of the two sensors.
+
+Below, we read the data and plot a few first and last observations from left wrist data set. 
+
+```{r read_data, message = FALSE}
+library(tidyverse)
+library(lubridate)
+
+# read raw accelerometry data from left wrist, right wrist
+dat_lw <- readRDS(paste0(here::here(), "/data/acc_raw_left_wrist.rds")) %>% as_tibble()
+dat_rw <- readRDS(paste0(here::here(), "/data/acc_raw_right_wrist.rds")) %>% as_tibble()
+
+# define data collection POSIXct (used *fake* day date of Feb 1, 2021)
+obs_datetime_seq <- seq(ymd_hms("2021-02-01 00:00:00"), by = 0.01, length.out = nrow(dat_lw))
+dat_lw <- mutate(dat_lw, obs_datetime = obs_datetime_seq, .before = "x")
+dat_rw <- mutate(dat_rw, obs_datetime = obs_datetime_seq, .before = "x")
+```
+
+```{r}
+rbind(head(dat_lw, 3), tail(dat_lw, 3))
+```
+
+Data were collected from a healthy 28F person.
+
+<details>
+  <summary>(Click to see IRB note.)</summary>
+  
+The raw accelerometry data in `data/` package were collected from sensors worn by Marta Karas, an author of this repository. The IRB Office Determination Request Form for Primary (New) Data Collection request form was submitted in regard to the collection and further publishing of these data. Based on preliminary review of the request form submitted, it was determined that the data collection and further data publishing activity described in the determination request does not qualify as human subjects research as defined by DHHS regulations 45 CFR 46.102, and does not require IRB oversight.
+</details>
+
+#### Data visualization  
+
+One way to visualize raw accelerometry data is to plot it as a three-dimensional time-series `(x,y,z)`. Here, we plot data from three different time frames, each of 4 seconds length, simultaneously for data collected at left wrist and right wrist. 
+
+<details> <summary>(Click to see the code.)</summary>
+```{r plot_xyz, fig.width=7.5, fig.height=4.5, eval = FALSE}
+# define time frame start values for data subset
+t1 <- ymd_hms("2021-02-01 09:57:11") 
+t2 <- ymd_hms("2021-02-01 09:59:41") 
+t3 <- ymd_hms("2021-02-01 10:03:47") 
+
+# combine data from two sensors, subset to keep only selected data frames 
+dat <- rbind(dat_lw, dat_rw)
+dat_sub <- dat %>%
+  filter((obs_datetime >= t1 & obs_datetime < t1 + as.period(4, "seconds")) | 
+           (obs_datetime >= t2 & obs_datetime < t2 + as.period(4, "seconds")) | 
+           (obs_datetime >= t3 & obs_datetime < t3 + as.period(4, "seconds")) ) %>%
+  mutate(dt_floor = paste0("time frame start: ", 
+                           floor_date(obs_datetime, unit = "minutes")))
+
+# plot (x,y,z) values 
+dat_sub %>%
+  select(-obs_idx) %>% 
+  pivot_longer(cols = -c(dt_floor, obs_datetime, loc_id)) %>%
+  ggplot(aes(x = obs_datetime, y = value, color = name)) + 
+  geom_line(size = 0.3) + 
+  facet_grid(loc_id ~ dt_floor, scales = "free_x") + 
+  theme_minimal(base_size = 10) + 
+  labs(x = "Time [s]", 
+       y = "Acceleration [g]", 
+       color = "Accelerometer axis of measurement: ") + 
+  theme(legend.position = "top")
+```
+</details>
+
+```{r plot_xyz_2, fig.width=7.5, fig.height=4.5, echo = FALSE}
+# define time frame start values for data subset
+t1 <- ymd_hms("2021-02-01 09:57:11") 
+t2 <- ymd_hms("2021-02-01 09:59:41") 
+t3 <- ymd_hms("2021-02-01 10:03:47") 
+
+# combine data from two sensors, subset to keep only selected data frames 
+dat <- rbind(dat_lw, dat_rw)
+dat_sub <- dat %>%
+  filter((obs_datetime >= t1 & obs_datetime < t1 + as.period(4, "seconds")) | 
+           (obs_datetime >= t2 & obs_datetime < t2 + as.period(4, "seconds")) | 
+           (obs_datetime >= t3 & obs_datetime < t3 + as.period(4, "seconds")) ) %>%
+  mutate(dt_floor = paste0("time frame start: ", 
+                           floor_date(obs_datetime, unit = "minutes")))
+
+# plot (x,y,z) values 
+dat_sub %>%
+  select(-obs_idx) %>% 
+  pivot_longer(cols = -c(dt_floor, obs_datetime, loc_id)) %>%
+  ggplot(aes(x = obs_datetime, y = value, color = name)) + 
+  geom_line(size = 0.3) + 
+  facet_grid(loc_id ~ dt_floor, scales = "free_x") + 
+  theme_minimal(base_size = 10) + 
+  labs(x = "Time [s]", 
+       y = "Acceleration [g]", 
+       color = "Accelerometer axis of measurement: ") + 
+  theme(legend.position = "top")
+```
+
+Vector magnitude (VM) is often used to reduce the dimensionality of accelerometry time-series `(x,y,z)`. VM is computed as `vm = sqrt(x^2 + y^2 + z^2)` at each time point resulting in 1- instead of 3-dimensional time-series.
+
+<details> <summary>(Click to see the code.)</summary>
+```{r plot_vm, fig.width=7.5, fig.height=4.1, eval = FALSE}
+# plot vector magnitude values 
+dat_sub %>%
+  mutate(vm = sqrt(x^2 + y^2 + z^2)) %>%
+  ggplot(aes(x = obs_datetime, y = vm)) + 
+  geom_line(size = 0.3) + 
+  facet_grid(loc_id ~ dt_floor, scales = "free_x") + 
+  theme_minimal(base_size = 10) + 
+  labs(x = "Time [s]", y = "VM") 
+```
+</details>
+
+```{r plot_vm_2, fig.width=7.5, fig.height=4.1, echo = FALSE}
+# plot vector magnitude values 
+dat_sub %>%
+  mutate(vm = sqrt(x^2 + y^2 + z^2)) %>%
+  ggplot(aes(x = obs_datetime, y = vm)) + 
+  geom_line(size = 0.3) + 
+  facet_grid(loc_id ~ dt_floor, scales = "free_x") + 
+  theme_minimal(base_size = 10) + 
+  labs(x = "Time [s]", y = "VM") 
+```
+
+In reality, it is often challenging to make a plot of all data points collected at sampling frequency of 100 Hz even in a few minutes-long time-series. A way to summarize accelerometry data of such high density is to use vector magnitude count (VMC; also known as the mean amplitude deviation, MAD). VMC over time window of length H is defined as mean of absolute value of `vm` deviations from its mean in the window. 
+
+Here, we compute VMC over 10 minutes-long time window.
+
+<details> <summary>(Click to see the code.)</summary>
+```{r plot_vmc, fig.width=7.5, fig.height=4.1, eval = FALSE}
+# function to compute VMC in a VM window
+vmc_func <- function(vm_win){
+  mean(abs(vm_win - mean(vm_win)))
+}
+
+# compute VMC vector in 10-minutes windows
+vm <- sqrt(dat$x^2 + dat$y^2 + dat$z^2)
+win_vl <- 100 * 60 * 10
+rn_seq <- seq(from = 1, to = nrow(dat), by = win_vl)
+vmc_vec <- sapply(rn_seq, function(rn_i){
+  vm_win_idx <- rn_i : (rn_i + win_vl - 1)
+  vm_win <- vm[vm_win_idx]
+  vmc_func(vm_win)
+})
+
+# plot VMC
+plt_df <- dat[rn_seq, ] %>% select(obs_datetime, loc_id) %>%
+  mutate(vmc = vmc_vec)
+ggplot(plt_df, aes(x = obs_datetime, y = vmc)) +
+  facet_grid(loc_id ~ .) +
+  geom_line(size = 0.3) +
+  theme_minimal(base_size = 10) +
+  labs(x = "Time", y = "VMC")
+```
+</details>
+
+```{r plot_vmc_2, fig.width=7.5, fig.height=4.2, echo = FALSE}
+# function to compute VMC in a VM window
+vmc_func <- function(vm_win){
+  mean(abs(vm_win - mean(vm_win)))
+}
+
+# compute VMC vector in 10-minutes windows
+vm <- sqrt(dat$x^2 + dat$y^2 + dat$z^2)
+win_vl <- 100 * 60 * 10
+rn_seq <- seq(from = 1, to = nrow(dat), by = win_vl)
+vmc_vec <- sapply(rn_seq, function(rn_i){
+  vm_win_idx <- rn_i : (rn_i + win_vl - 1)
+  vm_win <- vm[vm_win_idx]
+  vmc_func(vm_win)
+})
+
+# plot VMC
+plt_df <- dat[rn_seq, ] %>% select(obs_datetime, loc_id) %>%
+  mutate(vmc = vmc_vec)
+ggplot(plt_df, aes(x = obs_datetime, y = vmc)) +
+  facet_grid(loc_id ~ .) +
+  geom_line(size = 0.3) +
+  theme_minimal(base_size = 10) +
+  labs(x = "Time", y = "VMC")
+```
+
+
+
+### Session info
+
+<details>
+  <summary>(Click to see session info.)</summary>
+
+```{r}
+devtools::session_info()
+```
+</details>
+
+

@@ -3,6 +3,6 @@
 .RData
 .Ruserdata
 .DS_Store
-README.Rmd
 README_files/
+README_cache/
 R/
