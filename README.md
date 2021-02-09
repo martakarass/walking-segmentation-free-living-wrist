@@ -105,7 +105,7 @@ t1 <- ymd_hms("2021-02-01 09:57:11")
 t2 <- ymd_hms("2021-02-01 09:59:41") 
 t3 <- ymd_hms("2021-02-01 10:03:47") 
 
-# combine data from two sensors, subset to keep only selected data frames 
+# combine data from two sensors, subset to keep only selected time windows 
 dat <- rbind(dat_lw, dat_rw)
 dat_sub <- dat %>%
   filter((obs_datetime >= t1 & obs_datetime < t1 + as.period(4, "seconds")) | 
