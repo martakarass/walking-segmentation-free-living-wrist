@@ -11,7 +11,7 @@ output:
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  cache = TRUE,
+  cache = FALSE,
   message = FALSE,
   warning = FALSE,
   # cache.lazy = FALSE,
