@@ -204,14 +204,12 @@ Second, the function filters the patterns segmented from the data to keep those 
 
 Below, we use three wrist-specific stride templates publicly available in [adeptdata](https://cran.r-project.org/web/packages/adeptdata/index.html) R package. 
 
-```{r}
+<details> <summary>(Click to see the code.)</summary>
+```{r plot_templates, fig.width=7.5, fig.height=3, eval = FALSE}
 # pull 3 x 200 matrix with 3 distinct stride pattern templates
 # (attached in adeptdata R package)
 templates_mat <- stride_template$left_wrist[[3]]
-```
 
-<details> <summary>(Click to see the code.)</summary>
-```{r plot_templates, fig.width=7.5, fig.height=3, eval = FALSE}
 plt_df <- 
   templates_mat %>% 
   as.data.frame() %>%
@@ -231,6 +229,10 @@ ggplot(plt_df, aes(x = name, y = value)) +
 </details>
 
 ```{r plot_templates_2, fig.width=7.5, fig.height=3, echo = FALSE}
+# pull 3 x 200 matrix with 3 distinct stride pattern templates
+# (attached in adeptdata R package)
+templates_mat <- stride_template$left_wrist[[3]]
+
 plt_df <- 
   templates_mat %>% 
   as.data.frame() %>%
@@ -440,15 +442,15 @@ out_comb_1 <- rbind(
 out_comb_1_mode <- 
   out_comb_1 %>%
   group_by(loc_id, day_id) %>%
-  summarise(dur_i_mode = estimate_mode(dur_i),
-            cadence_i_mode = estimate_mode(cadence_i)) %>%
+  summarise(stride_duration_mode = estimate_mode(dur_i),
+            cadence_mode = estimate_mode(cadence_i)) %>%
   arrange(day_id, loc_id) %>%
   as.data.frame()
 
 ggplot(out_comb_1, aes(x = cadence_i)) + 
   geom_density() + 
   facet_grid(loc_id ~ day_id) + 
-  geom_vline(data = out_comb_1_mode, aes(xintercept = cadence_i_mode), 
+  geom_vline(data = out_comb_1_mode, aes(xintercept = cadence_mode), 
              linetype = 2, color = "blue") +
   theme_minimal(base_size = 10) + 
   labs(x = "Cadence [steps/s]", title = "Vertical dashed line: empirical mode")
@@ -474,15 +476,15 @@ out_comb_1 <- rbind(
 out_comb_1_mode <- 
   out_comb_1 %>%
   group_by(loc_id, day_id) %>%
-  summarise(dur_i_mode = estimate_mode(dur_i),
-            cadence_i_mode = estimate_mode(cadence_i)) %>%
+  summarise(stride_duration_mode = estimate_mode(dur_i),
+            cadence_mode = estimate_mode(cadence_i)) %>%
   arrange(day_id, loc_id) %>%
   as.data.frame()
 
 ggplot(out_comb_1, aes(x = cadence_i)) + 
   geom_density() + 
   facet_grid(loc_id ~ day_id) + 
-  geom_vline(data = out_comb_1_mode, aes(xintercept = cadence_i_mode), 
+  geom_vline(data = out_comb_1_mode, aes(xintercept = cadence_mode), 
              linetype = 2, color = "blue") +
   theme_minimal(base_size = 10) + 
   labs(x = "Cadence [steps/s]", title = "Vertical dashed line: daily cadence (empirical mode)")
@@ -521,12 +523,12 @@ out_comb_1 <-
 out_comb_1_mode_hourly <- 
   out_comb_1 %>%
   group_by(loc_id, day_id, hour_id) %>%
-  summarise(cadence_i_mode = estimate_mode(cadence_i),
+  summarise(cadence_mode = estimate_mode(cadence_i),
             cnt = n()) %>%
   as.data.frame()
 
 ggplot(out_comb_1_mode_hourly %>% filter(cnt > 10), 
-       aes(x = hour_id, y = cadence_i_mode, group = 1)) + 
+       aes(x = hour_id, y = cadence_mode, group = 1)) + 
   geom_line(linetype = 2, size = 0.5, color = "grey") + 
   geom_point(aes(size = cnt, alpha = cnt)) + 
   facet_grid(loc_id ~ day_id) + 
@@ -553,12 +555,12 @@ out_comb_1 <-
 out_comb_1_mode_hourly <- 
   out_comb_1 %>%
   group_by(loc_id, day_id, hour_id) %>%
-  summarise(cadence_i_mode = estimate_mode(cadence_i),
+  summarise(cadence_mode = estimate_mode(cadence_i),
             cnt = n()) %>%
   as.data.frame()
 
 ggplot(out_comb_1_mode_hourly %>% filter(cnt >= 10), 
-       aes(x = hour_id, y = cadence_i_mode, group = 1)) + 
+       aes(x = hour_id, y = cadence_mode, group = 1)) + 
   geom_line(linetype = 2, size = 0.5, color = "grey") + 
   geom_point(aes(size = cnt, alpha = cnt)) + 
   facet_grid(loc_id ~ day_id) + 

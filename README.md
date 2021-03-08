@@ -205,17 +205,15 @@ in
 [adeptdata](https://cran.r-project.org/web/packages/adeptdata/index.html)
 R package.
 
-``` r
-# pull 3 x 200 matrix with 3 distinct stride pattern templates
-# (attached in adeptdata R package)
-templates_mat <- stride_template$left_wrist[[3]]
-```
-
 <details>
 
 <summary>(Click to see the code.)</summary>
 
 ``` r
+# pull 3 x 200 matrix with 3 distinct stride pattern templates
+# (attached in adeptdata R package)
+templates_mat <- stride_template$left_wrist[[3]]
+
 plt_df <- 
   templates_mat %>% 
   as.data.frame() %>%
@@ -413,15 +411,15 @@ out_comb_1 <- rbind(
 out_comb_1_mode <- 
   out_comb_1 %>%
   group_by(loc_id, day_id) %>%
-  summarise(dur_i_mode = estimate_mode(dur_i),
-            cadence_i_mode = estimate_mode(cadence_i)) %>%
+  summarise(stride_duration_mode = estimate_mode(dur_i),
+            cadence_mode = estimate_mode(cadence_i)) %>%
   arrange(day_id, loc_id) %>%
   as.data.frame()
 
 ggplot(out_comb_1, aes(x = cadence_i)) + 
   geom_density() + 
   facet_grid(loc_id ~ day_id) + 
-  geom_vline(data = out_comb_1_mode, aes(xintercept = cadence_i_mode), 
+  geom_vline(data = out_comb_1_mode, aes(xintercept = cadence_mode), 
              linetype = 2, color = "blue") +
   theme_minimal(base_size = 10) + 
   labs(x = "Cadence [steps/s]", title = "Vertical dashed line: empirical mode")
@@ -480,12 +478,12 @@ out_comb_1 <-
 out_comb_1_mode_hourly <- 
   out_comb_1 %>%
   group_by(loc_id, day_id, hour_id) %>%
-  summarise(cadence_i_mode = estimate_mode(cadence_i),
+  summarise(cadence_mode = estimate_mode(cadence_i),
             cnt = n()) %>%
   as.data.frame()
 
 ggplot(out_comb_1_mode_hourly %>% filter(cnt > 10), 
-       aes(x = hour_id, y = cadence_i_mode, group = 1)) + 
+       aes(x = hour_id, y = cadence_mode, group = 1)) + 
   geom_line(linetype = 2, size = 0.5, color = "grey") + 
   geom_point(aes(size = cnt, alpha = cnt)) + 
   facet_grid(loc_id ~ day_id) + 
@@ -546,6 +544,7 @@ devtools::session_info()
 #>  ellipsis      0.3.1    2020-05-15 [1] CRAN (R 4.0.2)
 #>  evaluate      0.14     2019-05-28 [1] CRAN (R 4.0.1)
 #>  fansi         0.4.2    2021-01-15 [1] CRAN (R 4.0.2)
+#>  farver        2.0.3    2020-01-16 [1] CRAN (R 4.0.2)
 #>  fastmap       1.1.0    2021-01-25 [1] CRAN (R 4.0.2)
 #>  forcats     * 0.5.1    2021-01-27 [1] CRAN (R 4.0.2)
 #>  fs            1.5.0    2020-07-31 [1] CRAN (R 4.0.2)
@@ -554,12 +553,13 @@ devtools::session_info()
 #>  glue          1.4.2    2020-08-27 [1] CRAN (R 4.0.2)
 #>  gtable        0.3.0    2019-03-25 [1] CRAN (R 4.0.2)
 #>  haven         2.3.1    2020-06-01 [1] CRAN (R 4.0.2)
-#>  here          1.0.1    2020-12-13 [1] CRAN (R 4.0.2)
+#>  highr         0.8      2019-03-20 [1] CRAN (R 4.0.2)
 #>  hms           1.0.0    2021-01-13 [1] CRAN (R 4.0.2)
 #>  htmltools     0.5.1.1  2021-01-22 [1] CRAN (R 4.0.2)
 #>  httr          1.4.2    2020-07-20 [1] CRAN (R 4.0.2)
 #>  jsonlite      1.7.2    2020-12-09 [1] CRAN (R 4.0.2)
 #>  knitr         1.31     2021-01-27 [1] CRAN (R 4.0.2)
+#>  labeling      0.4.2    2020-10-20 [1] CRAN (R 4.0.2)
 #>  lattice       0.20-41  2020-04-02 [1] CRAN (R 4.0.3)
 #>  lifecycle     1.0.0    2021-02-15 [1] CRAN (R 4.0.2)
 #>  lubridate   * 1.7.9.2  2020-11-13 [1] CRAN (R 4.0.2)
