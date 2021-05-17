@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 
 Below, we demonstrate our method for automatic walking strides segmentation from wrist-worn sensor accelerometry data collected in the free-living environment. 
 
-This repository accompanies "*Estimation of free-living walking cadence from wrist-worn sensor accelerometry data and its association with SF-36 quality of life scores*" [manuscript][1] in which the method is proposed. The method is implemented as the `segmentWalking()` function in `adept` R package ([CRAN index](https://cran.r-project.org/web/packages/adept/index.html)). Below, we demonstrate the method with the use of independent data sample (not used in the manuscript study). 
+This repository accompanies "*Estimation of free-living walking cadence from wrist-worn sensor accelerometry data and its association with SF-36 quality of life scores*" manuscript ([1]) in which the method is proposed. The method is implemented as the `segmentWalking()` function in `adept` R package ([CRAN index](https://cran.r-project.org/web/packages/adept/index.html)). Below, we demonstrate the method with the use of independent data sample (not used in the manuscript study). 
 
 ### Accelerometry data sample 
 
@@ -192,13 +192,13 @@ ggplot(plt_df, aes(x = obs_datetime, y = vmc)) +
 
 We use `segmentWalking()` function in `adept` R package to automatically segment individual walking strides from the raw accelerometry data collected with a wrist-worn sensor. 
 
-First, the function first uses Adaptive Empirical Pattern Transformation (ADEPT) method (see [ADEPT manuscript][2]) to segment walking stride patterns. In short, ADEPT uses a predefined template and detects its repetitions in data by maximizing the local correlation between scale-transformed template's versions and the observed data at every time point. Multiple baseline templates can be used simultaneously to best fit various shapes of strides. The ADEPT result describes each segmented stride by its: 
+First, the function first uses Adaptive Empirical Pattern Transformation (ADEPT) method (see ADEPT manuscript [2]) to segment walking stride patterns. In short, ADEPT uses a predefined template and detects its repetitions in data by maximizing the local correlation between scale-transformed template's versions and the observed data at every time point. Multiple baseline templates can be used simultaneously to best fit various shapes of strides. The ADEPT result describes each segmented stride by its: 
 
 - (a) start time, 
 - (b) duration (seconds),  
 - (c) correlation with best-fit template.
 
-Second, the function filters the patterns segmented from the data to keep those which plausibly and with high specificity correspond to walking activity. Methodological details are reported in the method [manuscript][1].
+Second, the function filters the patterns segmented from the data to keep those which plausibly and with high specificity correspond to walking activity. Methodological details are reported in the method manuscript ([1]).
 
 #### Stride pattern templates
 
@@ -401,13 +401,13 @@ ggplot(plt_df, aes(x = stride_duration, y = stride_dat, group = stride_id)) +
 ```
 
 
-### Estimation of walking cadence (steps/s)
+### Estimation of walking cadence (steps/min)
 
 #### Daily walking cadence 
 
 The data used in this tutorial consists of two days of continuous monitoring. We use 
 
-segmented strides to estimate the walking cadence (number of steps per second) at every time of the day when walking was identified. Next, we compute the mode of all estimated cadences during the day was computed -- a *daily cadence* measurement. 
+segmented strides to estimate the walking cadence (number of steps per minute) at every time of the day when walking was identified. Next, we compute the mode of all estimated cadences during the day was computed -- a *daily cadence* measurement. 
 
 <details> <summary>(Click to see the code.)</summary>
 ```{r vizu_daily_candece, fig.width=7.5, fig.height=3, eval = FALSE}
@@ -430,8 +430,8 @@ out_comb_1 <- rbind(
     # (stride := two subsequent steps)
     # over data frequency (number of observations per 1 second)
     dur_i = T_i / hz_val, 
-    # define cadence as number of steps per 1 second
-    cadence_i = 2/dur_i,
+    # define cadence as number of steps per 1 minute
+    cadence_i = (2/dur_i) * 60,
     # define collection day "ID" 
     day_id = ceiling(tau_i / (hz_val * 60 * 60 * 24)),
     day_id = factor(day_id, levels = c(1,2), labels = paste0("Day ", 1:2))
@@ -453,7 +453,7 @@ ggplot(out_comb_1, aes(x = cadence_i)) +
   geom_vline(data = out_comb_1_mode, aes(xintercept = cadence_mode), 
              linetype = 2, color = "blue") +
   theme_minimal(base_size = 10) + 
-  labs(x = "Cadence [steps/s]", title = "Vertical dashed line: empirical mode")
+  labs(x = "Cadence [steps/min]", title = "Vertical dashed line: empirical mode")
 ```
 </details>
 
@@ -470,7 +470,7 @@ out_comb_1 <- rbind(
   out_rw_1 %>% mutate(loc_id = "right_wrist")
 ) %>% 
   mutate(dur_i = T_i / hz_val, 
-         cadence_i = 2/dur_i,
+         cadence_i = (2/dur_i) * 60,
          day_id = ceiling(tau_i / (hz_val * 60 * 60 * 24)),
          day_id = factor(day_id, levels = c(1,2), labels = paste0("Day ", 1:2))) 
 out_comb_1_mode <- 
@@ -487,10 +487,10 @@ ggplot(out_comb_1, aes(x = cadence_i)) +
   geom_vline(data = out_comb_1_mode, aes(xintercept = cadence_mode), 
              linetype = 2, color = "blue") +
   theme_minimal(base_size = 10) + 
-  labs(x = "Cadence [steps/s]", title = "Vertical dashed line: daily cadence (empirical mode)")
+  labs(x = "Cadence [steps/min]", title = "Vertical dashed line: empirical mode")
 ```
 
-The table summarizes empirical mode of stride duration [s] and cadence [steps/s]: 
+The table summarizes empirical mode of stride duration [s] and cadence [steps/min]: 
 
 <details> <summary>(Click to see the code.)</summary>
 ```{r vizu_daily_candeceB}
@@ -534,7 +534,7 @@ ggplot(out_comb_1_mode_hourly %>% filter(cnt > 10),
   facet_grid(loc_id ~ day_id) + 
   theme_minimal(base_size = 10) + 
   labs(x = "Hour of a day", 
-       y = "Cadence [steps/s]",
+       y = "Cadence [steps/min]",
        alpha = "Segmented\nstrides\ncount",
        size = "Segmented\nstrides\ncount") + 
   scale_x_continuous(limits = c(0, 23), breaks = seq(0, 23, by = 2))
@@ -559,14 +559,14 @@ out_comb_1_mode_hourly <-
             cnt = n()) %>%
   as.data.frame()
 
-ggplot(out_comb_1_mode_hourly %>% filter(cnt >= 10), 
+ggplot(out_comb_1_mode_hourly %>% filter(cnt > 10), 
        aes(x = hour_id, y = cadence_mode, group = 1)) + 
   geom_line(linetype = 2, size = 0.5, color = "grey") + 
   geom_point(aes(size = cnt, alpha = cnt)) + 
   facet_grid(loc_id ~ day_id) + 
   theme_minimal(base_size = 10) + 
   labs(x = "Hour of a day", 
-       y = "Cadence [steps/s]",
+       y = "Cadence [steps/min]",
        alpha = "Segmented\nstrides\ncount",
        size = "Segmented\nstrides\ncount") + 
   scale_x_continuous(limits = c(0, 23), breaks = seq(0, 23, by = 2))

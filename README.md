@@ -2,22 +2,22 @@ Automatic walking strides segmentation from wrist-worn sensor
 accelerometry data collected in the free-living
 ================
 
-  - [Accelerometry data sample](#accelerometry-data-sample)
-      - [Description](#description)
-      - [Raw data visualization](#raw-data-visualization)
-  - [Segment individual walking
+-   [Accelerometry data sample](#accelerometry-data-sample)
+    -   [Description](#description)
+    -   [Raw data visualization](#raw-data-visualization)
+-   [Segment individual walking
     strides](#segment-individual-walking-strides)
-      - [Algorithm](#algorithm)
-      - [Stride pattern templates](#stride-pattern-templates)
-      - [Segmentation](#segmentation)
-      - [Visualization of segmented walking
+    -   [Algorithm](#algorithm)
+    -   [Stride pattern templates](#stride-pattern-templates)
+    -   [Segmentation](#segmentation)
+    -   [Visualization of segmented walking
         strides](#visualization-of-segmented-walking-strides)
-  - [Estimation of walking cadence
-    (steps/s)](#estimation-of-walking-cadence-stepss)
-      - [Daily walking cadence](#daily-walking-cadence)
-      - [Hourly walking cadence](#hourly-walking-cadence)
-  - [Session info](#session-info)
-  - [References](#references)
+-   [Estimation of walking cadence
+    (steps/min)](#estimation-of-walking-cadence-stepsmin)
+    -   [Daily walking cadence](#daily-walking-cadence)
+    -   [Hourly walking cadence](#hourly-walking-cadence)
+-   [Session info](#session-info)
+-   [References](#references)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -27,7 +27,7 @@ free-living environment.
 
 This repository accompanies “*Estimation of free-living walking cadence
 from wrist-worn sensor accelerometry data and its association with SF-36
-quality of life scores*” \[manuscript\]\[1\] in which the method is
+quality of life scores*” manuscript (\[1\]) in which the method is
 proposed. The method is implemented as the `segmentWalking()` function
 in `adept` R package ([CRAN
 index](https://cran.r-project.org/web/packages/adept/index.html)).
@@ -40,8 +40,8 @@ Below, we demonstrate the method with the use of independent data sample
 
 The directory `data/` contains data files:
 
-  - `acc_raw_left_wrist.rds`
-  - `acc_raw_right_wrist.rds`
+-   `acc_raw_left_wrist.rds`
+-   `acc_raw_right_wrist.rds`
 
 which are a sample of raw accelerometry data collected consecutively for
 2 days, starting and ending at midnight of a week day. Data were
@@ -87,9 +87,9 @@ rbind(head(dat_lw, 3), tail(dat_lw, 3))
 Data were collected from a healthy 28F person.
 
 <details>
-
-<summary>(Click to see IRB note.)</summary>
-
+<summary>
+(Click to see IRB note.)
+</summary>
 The raw accelerometry data in `data/` package were collected from
 sensors worn by Marta Karas, an author of this repository. The IRB
 Office Determination Request Form for Primary (New) Data Collection
@@ -99,7 +99,6 @@ form submitted, it was determined that the data collection and further
 data publishing activity described in the determination request does not
 qualify as human subjects research as defined by DHHS regulations 45 CFR
 46.102, and does not require IRB oversight.
-
 </details>
 
 #### Raw data visualization
@@ -110,8 +109,9 @@ different time frames, each of 4 seconds length, simultaneously for data
 collected at left wrist and right wrist.
 
 <details>
-
-<summary>(Click to see the code.)</summary>
+<summary>
+(Click to see the code.)
+</summary>
 
 ``` r
 # define time frame start values for data subset
@@ -147,13 +147,14 @@ dat_sub %>%
 ![](README_files/figure-gfm/plot_xyz_2-1.png)<!-- -->
 
 Vector magnitude (VM) is often used to reduce the dimensionality of
-accelerometry time-series `(x,y,z)`. VM is computed as `vm = sqrt(x^2 +
-y^2 + z^2)` at each time point resulting in 1- instead of 3-dimensional
-time-series.
+accelerometry time-series `(x,y,z)`. VM is computed as
+`vm = sqrt(x^2 + y^2 + z^2)` at each time point resulting in 1- instead
+of 3-dimensional time-series.
 
 <details>
-
-<summary>(Click to see the code.)</summary>
+<summary>
+(Click to see the code.)
+</summary>
 
 ``` r
 # plot vector magnitude values 
@@ -179,7 +180,7 @@ segment individual walking strides from the raw accelerometry data
 collected with a wrist-worn sensor.
 
 First, the function first uses Adaptive Empirical Pattern Transformation
-(ADEPT) method (see \[ADEPT manuscript\]\[2\]) to segment walking stride
+(ADEPT) method (see ADEPT manuscript \[2\]) to segment walking stride
 patterns. In short, ADEPT uses a predefined template and detects its
 repetitions in data by maximizing the local correlation between
 scale-transformed template’s versions and the observed data at every
@@ -187,16 +188,16 @@ time point. Multiple baseline templates can be used simultaneously to
 best fit various shapes of strides. The ADEPT result describes each
 segmented stride by its:
 
-  - 1)  start time,
+-   1.  start time,
 
-  - 2)  duration (seconds),  
+-   2.  duration (seconds),  
 
-  - 3)  correlation with best-fit template.
+-   3.  correlation with best-fit template.
 
 Second, the function filters the patterns segmented from the data to
 keep those which plausibly and with high specificity correspond to
 walking activity. Methodological details are reported in the method
-\[manuscript\]\[1\].
+manuscript (\[1\]).
 
 #### Stride pattern templates
 
@@ -206,8 +207,9 @@ in
 R package.
 
 <details>
-
-<summary>(Click to see the code.)</summary>
+<summary>
+(Click to see the code.)
+</summary>
 
 ``` r
 # pull 3 x 200 matrix with 3 distinct stride pattern templates
@@ -243,8 +245,9 @@ sensor. Default algorithm parameters are optimized for a wrist-worn
 sensor.
 
 <details>
-
-<summary>(Click to see the code – part 1.)</summary>
+<summary>
+(Click to see the code – part 1.)
+</summary>
 
 ``` r
 # convert templates matrix to templates list 
@@ -278,10 +281,10 @@ saveRDS(out_rw, paste0(here::here(), "/data/out_rw.rds"))
 ```
 
 </details>
-
 <details>
-
-<summary>(Click to see the code – part 2.)</summary>
+<summary>
+(Click to see the code – part 2.)
+</summary>
 
 ``` r
 # read precomputed results for faster README compilation 
@@ -310,8 +313,9 @@ Below, we visualize first K=50 strides segmented from (a) left wrist,
 (b) right-wrist worn sensor.
 
 <details>
-
-<summary>(Click to see the code.)</summary>
+<summary>
+(Click to see the code.)
+</summary>
 
 ``` r
 # get VM from raw data frames
@@ -363,7 +367,7 @@ ggplot(plt_df, aes(x = stride_duration, y = stride_dat, group = stride_id)) +
 
 ![](README_files/figure-gfm/vizu_segmented_2-1.png)<!-- -->
 
-### Estimation of walking cadence (steps/s)
+### Estimation of walking cadence (steps/min)
 
 #### Daily walking cadence
 
@@ -371,13 +375,14 @@ The data used in this tutorial consists of two days of continuous
 monitoring. We use
 
 segmented strides to estimate the walking cadence (number of steps per
-second) at every time of the day when walking was identified. Next, we
+minute) at every time of the day when walking was identified. Next, we
 compute the mode of all estimated cadences during the day was computed –
 a *daily cadence* measurement.
 
 <details>
-
-<summary>(Click to see the code.)</summary>
+<summary>
+(Click to see the code.)
+</summary>
 
 ``` r
 # function to compute mode
@@ -399,8 +404,8 @@ out_comb_1 <- rbind(
     # (stride := two subsequent steps)
     # over data frequency (number of observations per 1 second)
     dur_i = T_i / hz_val, 
-    # define cadence as number of steps per 1 second
-    cadence_i = 2/dur_i,
+    # define cadence as number of steps per 1 minute
+    cadence_i = (2/dur_i) * 60,
     # define collection day "ID" 
     day_id = ceiling(tau_i / (hz_val * 60 * 60 * 24)),
     day_id = factor(day_id, levels = c(1,2), labels = paste0("Day ", 1:2))
@@ -422,7 +427,7 @@ ggplot(out_comb_1, aes(x = cadence_i)) +
   geom_vline(data = out_comb_1_mode, aes(xintercept = cadence_mode), 
              linetype = 2, color = "blue") +
   theme_minimal(base_size = 10) + 
-  labs(x = "Cadence [steps/s]", title = "Vertical dashed line: empirical mode")
+  labs(x = "Cadence [steps/min]", title = "Vertical dashed line: empirical mode")
 ```
 
 </details>
@@ -430,11 +435,12 @@ ggplot(out_comb_1, aes(x = cadence_i)) +
 ![](README_files/figure-gfm/vizu_daily_candece_2-1.png)<!-- -->
 
 The table summarizes empirical mode of stride duration \[s\] and cadence
-\[steps/s\]:
+\[steps/min\]:
 
 <details>
-
-<summary>(Click to see the code.)</summary>
+<summary>
+(Click to see the code.)
+</summary>
 
 ``` r
 print(out_comb_1_mode)
@@ -461,8 +467,9 @@ day-hours where the number of estimated walking strides is more or equal
 10.
 
 <details>
-
-<summary>(Click to see the code.)</summary>
+<summary>
+(Click to see the code.)
+</summary>
 
 ``` r
 # compute hour ID  
@@ -489,7 +496,7 @@ ggplot(out_comb_1_mode_hourly %>% filter(cnt > 10),
   facet_grid(loc_id ~ day_id) + 
   theme_minimal(base_size = 10) + 
   labs(x = "Hour of a day", 
-       y = "Cadence [steps/s]",
+       y = "Cadence [steps/min]",
        alpha = "Segmented\nstrides\ncount",
        size = "Segmented\nstrides\ncount") + 
   scale_x_continuous(limits = c(0, 23), breaks = seq(0, 23, by = 2))
@@ -502,8 +509,9 @@ ggplot(out_comb_1_mode_hourly %>% filter(cnt > 10),
 ### Session info
 
 <details>
-
-<summary>(Click to see session info.)</summary>
+<summary>
+(Click to see session info.)
+</summary>
 
 ``` r
 devtools::session_info()
